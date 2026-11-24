@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拖尾采样系数：断裂段数 B(c) 与点数 N(c)</title>
+<style>
+  .viz-root {
+    color-scheme: light;
+    --surface-1:      #fcfcfb;
+    --surface-2:      #f3f2ef;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #8a8880;
+    --grid:           #e4e2dc;
+    --window:         rgba(27, 175, 122, 0.14);
+    --window-edge:    rgba(27, 175, 122, 0.55);
+    --series-1:       #2a78d6;  /* N(c) point count   */
+    --series-2:       #eb6834;  /* B(c) break count   */
+    --series-3:       #8a8880;  /* overlap, reference */
+    font-family: -apple-system, "Segoe UI", Roboto, "PingFang SC",
+                 "Microsoft YaHei", sans-serif;
+    background: var(--surface-1);
+    color: var(--text-primary);
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) .viz-root {
+      color-scheme: dark;
+      --surface-1:      #1a1a19;
+      --surface-2:      #232321;
+      --text-primary:   #f0efec;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #8f8d84;
+      --grid:           #31312e;
+      --window:         rgba(25, 158, 112, 0.18);
+      --window-edge:    rgba(25, 158, 112, 0.6);
+      --series-1:       #3987e5;
+      --series-2:       #d95926;
+      --series-3:       #9b998f;
+    }
+  }
+  h1 { font-size: 18px; font-weight: 650; margin: 0 0 4px; }
+  .sub { color: var(--text-secondary); font-size: 13px; margin: 0 0 18px; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px;
+            color: var(--text-secondary); margin-bottom: 10px; }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .swatch { width: 16px; height: 3px; border-radius: 2px; display: inline-block; }
+  .swatch.dash { background: repeating-linear-gradient(90deg,
+      var(--series-3) 0 5px, transparent 5px 9px); height: 2px; }
+  .swatch.window { background: var(--window-edge); height: 12px; width: 10px;
+      border-radius: 2px; }
+  svg { width: 100%; height: auto; display: block; }
+  .grid-line { stroke: var(--grid); stroke-width: 1; }
+  .axis-line { stroke: var(--text-muted); stroke-width: 1; }
+  .tick-label { fill: var(--text-muted); font-size: 11px; }
+  .axis-title { fill: var(--text-secondary); font-size: 12px; }
+  .panel-title { fill: var(--text-primary); font-size: 12.5px; font-weight: 600; }
+  .end-label { fill: var(--text-secondary); font-size: 11.5px; }
+  .window-label { fill: var(--text-secondary); font-size: 11px; }
+  .series { fill: none; stroke-width: 2; stroke-linejoin: round;
+            stroke-linecap: round; }
+  .hover-hit { fill: none; stroke: transparent; stroke-width: 14;
+               pointer-events: stroke; cursor: crosshair; }
+  .crosshair { stroke: var(--text-muted); stroke-width: 1; stroke-dasharray: 3 3;
+               opacity: 0; }
+  .tip { position: fixed; pointer-events: none; background: var(--surface-2);
+         border: 1px solid var(--grid); border-radius: 6px; padding: 8px 10px;
+         font-size: 12px; color: var(--text-primary); box-shadow: 0 4px 14px
+         rgba(0,0,0,.18); opacity: 0; transition: opacity .1s; z-index: 5;
+         white-space: nowrap; }
+  .tip b { font-weight: 650; }
+  .tip .row { display: flex; gap: 8px; justify-content: space-between; }
+  .tip .dot { display:inline-block; width:8px; height:8px; border-radius:50%;
+              margin-right:5px; }
+  button { font: inherit; font-size: 12.5px; color: var(--text-secondary);
+           background: var(--surface-2); border: 1px solid var(--grid);
+           border-radius: 6px; padding: 5px 12px; cursor: pointer; margin-top: 14px; }
+  button:hover { color: var(--text-primary); }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px;
+          font-size: 12px; display: none; }
+  table.show { display: table; }
+  th, td { border-bottom: 1px solid var(--grid); padding: 5px 10px;
+           text-align: right; color: var(--text-secondary); }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--text-primary); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="viz-root" id="root">
+  <h1>采样系数扫描：断裂段数 B(c) 与点数 N(c)</h1>
+  <p class="sub">中档螺线路径（v₀=18，r=1）。绿色带为可行窗口 π/3≈1.047 ≤ c ≤ 2：左界保证不重叠，右界保证不断裂。</p>
+  <div class="legend">
+    <span><i class="swatch" style="background:var(--series-2)"></i>B(c) 断裂段数</span>
+    <span><i class="swatch" style="background:var(--series-1)"></i>N(c) 输出点数</span>
+    <span><i class="swatch dash"></i>重叠违规数（参考）</span>
+    <span><i class="swatch window"></i>可行窗口</span>
+  </div>
+  <svg id="chart" viewBox="0 0 820 470" role="img"
+       aria-label="B(c) 和 N(c) 随系数 c 变化的两张共享横轴小多图"></svg>
+  <div class="tip" id="tip"></div>
+  <button id="tblBtn" type="button">显示数据表</button>
+  <table id="dataTable">
+    <thead><tr><th>c</th><th>B(c) 断裂段数</th><th>N(c) 点数</th><th>重叠违规</th></tr></thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script>
+const RAW = `c,breaks,points,overlap
+0.6000,0,186,182
+0.6450,0,173,169
+0.6900,0,162,158
+0.7350,0,152,148
+0.7800,0,144,140
+0.8250,0,136,132
+0.8700,0,129,125
+0.9150,0,123,119
+0.9600,0,117,113
+1.0050,0,112,0
+1.0500,0,107,0
+1.0950,0,103,0
+1.1400,0,99,0
+1.1850,0,95,0
+1.2300,0,92,0
+1.2750,0,89,0
+1.3200,0,86,0
+1.3650,0,83,0
+1.4100,0,81,0
+1.4550,0,78,0
+1.5000,0,76,0
+1.5450,0,74,0
+1.5900,0,72,0
+1.6350,0,70,0
+1.6800,0,68,0
+1.7250,0,67,0
+1.7700,0,65,0
+1.8150,0,64,0
+1.8600,0,62,0
+1.9050,0,60,0
+1.9500,0,58,0
+1.9950,0,57,0
+2.0400,52,56,0
+2.0850,51,55,0
+2.1300,50,54,0
+2.1750,49,53,0
+2.2200,48,52,0
+2.2650,47,51,0
+2.3100,46,50,0
+2.3550,45,49,0
+2.4000,44,48,0
+2.4450,43,47,0
+2.4900,42,46,0
+2.5350,42,46,0
+2.5800,41,45,0
+2.6250,40,44,0
+2.6700,39,43,0
+2.7150,39,43,0
+2.7600,38,42,0
+2.8050,37,41,0
+2.8500,37,41,0
+2.8950,36,40,0
+2.9400,36,40,0
+2.9850,35,39,0
+3.0300,35,39,0
+3.0750,34,38,0
+3.1200,33,37,0
+3.1650,33,37,0
+3.2100,32,36,0
+3.2550,32,36,0
+3.3000,32,36,0`;
+
+const data = RAW.trim().split("\n").slice(1).map(l => {
+  const [c, breaks, points, overlap] = l.split(",").map(Number);
+  return { c, breaks, points, overlap };
+});
+const CMIN = Math.PI / 3, CMAX = 2.0;
+const css = n => getComputedStyle(document.getElementById("root"))
+                     .getPropertyValue(n).trim();
+
+const W = 820, M = { l: 64, r: 70, t: 26, b: 40 };
+const PW = W - M.l - M.r;                 // plot width
+const PH = 168, GAP = 34;
+const panels = [
+  { key: "breaks",  ref: "overlap", color2: "--series-2", yMax: 60,
+    title: "B(c) 断裂段数（相邻点弦长 > 2r 的对数）", yLabel: "段数" },
+  { key: "points",  ref: null,      color2: "--series-1", yMax: 200,
+    title: "N(c) 同一条轨迹的输出点数", yLabel: "点数" },
+];
+const xMin = 0.6, xMax = 3.3;
+const X = c => M.l + (c - xMin) / (xMax - xMin) * PW;
+const Y = (v, yMax) => v => 0; // per-panel below
+
+const svg = document.getElementById("chart");
+const NS = "http://www.w3.org/2000/svg";
+const el = (tag, attrs) => {
+  const n = document.createElementNS(NS, tag);
+  for (const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+};
+
+panels.forEach((pan, pi) => {
+  const top = M.t + pi * (PH + GAP);
+  const Yp = v => top + PH - (v / pan.yMax) * PH;
+  pan.top = top; pan.Yp = Yp;
+
+  // panel title
+  svg.appendChild(el("text", { x: M.l, y: top - 9, class: "panel-title" }))
+     .textContent = pan.title;
+
+  // feasible window band
+  const wx = X(CMIN), ww = X(CMAX) - X(CMIN);
+  svg.appendChild(el("rect", { x: wx, y: top, width: ww, height: PH,
+    fill: "var(--window)" }));
+  svg.appendChild(el("line", { x1: wx, x2: wx, y1: top, y2: top + PH,
+    stroke: "var(--window-edge)", "stroke-width": 1.2 }));
+  svg.appendChild(el("line", { x1: X(CMAX), x2: X(CMAX), y1: top, y2: top + PH,
+    stroke: "var(--window-edge)", "stroke-width": 1.2 }));
+
+  // grid + y ticks
+  for (let g = 0; g <= pan.yMax; g += pan.yMax / 4) {
+    const yy = Yp(g);
+    svg.appendChild(el("line", { x1: M.l, x2: M.l + PW, y1: yy, y2: yy,
+      class: "grid-line" }));
+    const t = el("text", { x: M.l - 8, y: yy + 4, class: "tick-label",
+      "text-anchor": "end" });
+    t.textContent = Math.round(g);
+    svg.appendChild(t);
+  }
+  // y axis title
+  const yt = el("text", {
+    x: M.l - 46, y: top + PH / 2, class: "axis-title",
+    transform: `rotate(-90 ${M.l - 46} ${top + PH / 2})`,
+    "text-anchor": "middle" });
+  yt.textContent = pan.yLabel;
+  svg.appendChild(yt);
+
+  // baseline
+  svg.appendChild(el("line", { x1: M.l, x2: M.l + PW, y1: top + PH,
+    y2: top + PH, class: "axis-line" }));
+
+  const pathFor = key => data.map((d, i) =>
+    `${i ? "L" : "M"}${X(d.c).toFixed(2)},${Yp(d[key]).toFixed(2)}`).join(" ");
+
+  // reference overlap series (top panel only)
+  if (pan.ref) {
+    svg.appendChild(el("path", { d: pathFor(pan.ref), class: "series",
+      stroke: "var(--series-3)", "stroke-dasharray": "5 5", "stroke-width": 1.5 }));
+  }
+  // main series
+  const main = el("path", { d: pathFor(pan.key), class: "series",
+    stroke: `var(${pan.color2})` });
+  svg.appendChild(main);
+
+  // end-of-line direct label
+  const last = data[data.length - 1];
+  const lab = el("text", { x: M.l + PW + 6, y: Yp(last[pan.key]) + 4,
+    class: "end-label" });
+  lab.textContent = last[pan.key];
+  svg.appendChild(lab);
+
+  // x ticks on bottom panel
+  if (pi === panels.length - 1) {
+    for (let c = 0.6; c <= 3.31; c += 0.3) {
+      const xx = X(c);
+      svg.appendChild(el("line", { x1: xx, x2: xx, y1: top + PH,
+        y2: top + PH + 5, class: "axis-line" }));
+      const t = el("text", { x: xx, y: top + PH + 18, class: "tick-label",
+        "text-anchor": "middle" });
+      t.textContent = c.toFixed(1);
+      svg.appendChild(t);
+    }
+    const xt = el("text", { x: M.l + PW / 2, y: top + PH + 36,
+      class: "axis-title", "text-anchor": "middle" });
+    xt.textContent = "间隔系数 c（间距 = c·r）";
+    svg.appendChild(xt);
+    // window labels on x axis
+    const wl1 = el("text", { x: X(CMIN), y: top + PH + 18,
+      class: "window-label", "text-anchor": "middle" });
+    wl1.textContent = "π/3";
+    svg.appendChild(wl1);
+    const wl2 = el("text", { x: X(CMAX), y: top + PH + 18,
+      class: "window-label", "text-anchor": "middle" });
+    wl2.textContent = "2";
+    svg.appendChild(wl2);
+  }
+});
+
+// ---- hover crosshair + tooltip, shared across panels ----
+const tip = document.getElementById("tip");
+const cross = [];
+for (let k = 0; k < 2; k++) {
+  const line = el("line", { class: "crosshair", y1: panels[k].top,
+    y2: panels[k].top + PH });
+  svg.appendChild(line); cross.push(line);
+}
+const hit = el("rect", { x: M.l, y: M.t, width: PW,
+  height: 2 * PH + GAP, fill: "none", class: "hover-hit" });
+svg.appendChild(hit);
+
+hit.addEventListener("pointermove", e => {
+  const rect = svg.getBoundingClientRect();
+  const sx = (e.clientX - rect.left) * (W / rect.width);
+  const c = xMin + (sx - M.l) / PW * (xMax - xMin);
+  if (c < xMin || c > xMax) return;
+  let d = data.reduce((a, b) => Math.abs(b.c - c) < Math.abs(a.c - c) ? b : a);
+  cross.forEach(l => {
+    l.setAttribute("x1", X(d.c)); l.setAttribute("x2", X(d.c));
+    l.style.opacity = 1;
+  });
+  const inWin = d.c >= CMIN && d.c <= CMAX;
+  tip.innerHTML =
+    `<b>c = ${d.c.toFixed(3)}</b> ${inWin ? "（可行窗口内）" : ""}<br>` +
+    `<span class="row"><span><i class="dot" style="background:${css("--series-2")}"></i>B(c) 断裂</span><b>${d.breaks}</b></span>` +
+    `<span class="row"><span><i class="dot" style="background:${css("--series-1")}"></i>N(c) 点数</span><b>${d.points}</b></span>` +
+    `<span class="row"><span><i class="dot" style="background:${css("--series-3")}"></i>重叠违规</span><b>${d.overlap}</b></span>`;
+  tip.style.opacity = 1;
+  const tw = tip.offsetWidth, th = tip.offsetHeight;
+  let tx = e.clientX + 14, ty = e.clientY + 14;
+  if (tx + tw > window.innerWidth - 8) tx = e.clientX - tw - 14;
+  if (ty + th > window.innerHeight - 8) ty = e.clientY - th - 14;
+  tip.style.left = tx + "px"; tip.style.top = ty + "px";
+});
+hit.addEventListener("pointerleave", () => {
+  cross.forEach(l => (l.style.opacity = 0));
+  tip.style.opacity = 0;
+});
+
+// ---- accessibility table ----
+const tbody = document.querySelector("#dataTable tbody");
+data.forEach(d => {
+  const tr = document.createElement("tr");
+  [d.c.toFixed(3), d.breaks, d.points, d.overlap].forEach(v => {
+    const td = document.createElement("td"); td.textContent = v; tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+});
+const btn = document.getElementById("tblBtn");
+btn.addEventListener("click", () => {
+  const t = document.getElementById("dataTable");
+  t.classList.toggle("show");
+  btn.textContent = t.classList.contains("show") ? "隐藏数据表" : "显示数据表";
+});
+</script>
+</body>
+</html>
