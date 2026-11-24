@@ -1,0 +1,107 @@
+== 1. jump measured from recorded trajectories (CSV) ==
+buggy_full   normal=0.033334 boundary=2.033334 all_max=2.033334 resume_spawn=61 max_spawn/frame=61 born=211
+time_only    normal=0.033334 boundary=2.033334 all_max=2.033334 resume_spawn=1 max_spawn/frame=1 born=151
+emit_only    normal=0.033334 boundary=0.033334 all_max=0.033334 resume_spawn=61 max_spawn/frame=61 born=211
+fixed        normal=0.033334 boundary=0.033334 all_max=0.033334 resume_spawn=2 max_spawn/frame=2 born=211
+scheduled    normal=0.033334 boundary=0.033333 all_max=0.033334 resume_spawn=1 max_spawn/frame=1 born=211
+
+== 2. ablation split of the boundary jump excess over one normal frame ==
+normal one-frame displacement J0 = 0.033334
+buggy boundary jump Jbug         = 2.033334
+excess total X = Jbug-J0         = 2.000000
+  time compensation Xt            = 2.000000  (100.00% of X)
+  emission reissue   Xe           = 0.000000  (0.00% of X)
+  interaction residual            = 0.000000000
+
+== 3. exact vector split of the recorded centroid jump (buggy_full) ==
+N_old=42 K_resume=61 (normal 1 + pause debt 60)
+C_pre=(0.6309524523809523, 0.0)  C_resume_measured=(1.0864078640776698, 0.0)
+normal-frame vector   = (+0.017885,+0.000000) |.|=0.017885
+time-comp vector      = (+1.953488,+0.000000) |.|=1.953488
+emission-debt vector  = (-1.515918,+0.000000) |.|=1.515918
+predicted total       = (+0.455455,+0.000000)
+measured total        = (+0.455455,+0.000000)
+gross pause budget    = 3.469406; time share 56.3% / emit share 43.7% (vectors oppose, so net centroid jump is 0.455455)
+
+== 4. spatial deficit of the one-frame flush vs the no-pause schedule ==
+pause-debt cohort n=60 flush-vs-scheduled position gap: max=1.999999 mean=1.016667
+(oldest missed emission should be ~speed*pause=2.000; it is erased to age 0 by the flush)
+
+== 5. trajectory excerpt, tagged particle id 0 ==
+buggy_full f29:(0.9667,0.0000) f30:(1.0000,0.0000) f91:(3.0333,0.0000) f92:(3.0667,0.0000) f93:(3.1000,0.0000)
+fixed f29:(0.9667,0.0000) f30:(1.0000,0.0000) f91:(1.0333,0.0000) f92:(1.0667,0.0000) f93:(1.1000,0.0000)
+
+== 6. acceptance checks (independent of the C assertions) ==
+csv_baseline_teleport_gt_1u=1 (2.0333)
+csv_decomp_additive=1 (resid 0.00e+00)
+csv_time_owns_position_jump=1
+csv_emit_sameid_jump_zero=1 (0.033334)
+csv_fixed_boundary_le_normal=1 (fixed 0.033334 vs normal 0.033334)
+csv_fixed_allmax_le_normal=1 (0.033334)
+csv_fixed_every_particle_step_le_normal=1 (0.033333)
+csv_buggy_every_particle_step_was_huge=1 (2.0333)
+csv_fixed_resume_spawn_is_2=1
+csv_no_frame_flood_over_2=1
+csv_buggy_did_flood_61=1
+csv_emission_count_conserved=1 (211 vs 211)
+csv_debt_repaid=1
+csv_centroid_split_matches_recording=1
+csv_emit_deficit_max_about_G=1 (dmax 2.0000)
+
+py_all_ok=1
+wrote /home/ys/feedback/uidreczz28dReW3mebW/pause/recordings/metrics.json
+
+########## C self-test + metrics: make -C pause test ##########
+clock_running_dt=1
+clock_resume_dt_one_frame=1
+clock_pause_span_booked=1
+clock_after_resume_normal=1
+# measurement units: position in world units, dt in seconds
+m_buggy_full_boundary_jump=2.033333
+m_buggy_full_max_jump=2.033333
+m_buggy_full_resume_spawned=61
+m_buggy_full_max_frame_spawned=61
+m_buggy_full_born_end=211 debt_end=0 debt_peak=0
+m_time_only_boundary_jump=2.033333
+m_time_only_max_jump=2.033333
+m_time_only_resume_spawned=1
+m_time_only_max_frame_spawned=1
+m_time_only_born_end=151 debt_end=0 debt_peak=0
+m_emit_only_boundary_jump=0.033333
+m_emit_only_max_jump=0.033333
+m_emit_only_resume_spawned=61
+m_emit_only_max_frame_spawned=61
+m_emit_only_born_end=211 debt_end=0 debt_peak=0
+m_fixed_boundary_jump=0.033333
+m_fixed_max_jump=0.033333
+m_fixed_resume_spawned=2
+m_fixed_max_frame_spawned=2
+m_fixed_born_end=211 debt_end=0 debt_peak=60
+m_scheduled_boundary_jump=0.033333
+m_scheduled_max_jump=0.033333
+m_scheduled_resume_spawned=1
+m_scheduled_max_frame_spawned=1
+m_scheduled_born_end=211 debt_end=0 debt_peak=0
+normal_frame_jump=0.033333 (speed*H=0.033333)
+raw_resume_dt=1.016667 = H 0.016667 + pause 1.000000
+decomp_excess_total=2.000000 time_part=2.000000 emit_part=0.000000 interaction=0.000000000
+decomp_share_time_pct=100.00 emit_pct=0.00
+pause_gap_distance_G=2.000000 (speed*pause)
+normal_step_equals_speed_dt=1
+baseline_teleport_gt_1u=1
+baseline_jump_equals_speed_rawdt=1
+baseline_dumps_61_in_resume_frame=1
+time_only_reproduces_full_jump=1
+emit_only_has_no_extra_position_jump=1
+decomp_additive=1
+fixed_boundary_jump_le_normal_frame=1
+fixed_max_jump_le_normal_frame=1
+fixed_boundary_equals_normal_step=1
+fixed_debt_booked_60=1
+fixed_resume_spawn_cap_2=1
+fixed_max_frame_spawn_le_2=1
+fixed_debt_fully_repaid=1
+fixed_emission_count_matches_schedule=1
+no_capacity_drops=1
+bad_dt_rejected=1
+all_ok=1

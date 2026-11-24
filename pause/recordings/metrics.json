@@ -1,0 +1,107 @@
+{
+  "modes": {
+    "buggy_full": {
+      "normal_max_jump": 0.033334000000000086,
+      "boundary_jump": 2.033334,
+      "all_max_jump": 2.033334,
+      "resume_spawned": 61,
+      "max_frame_spawned": 61,
+      "born_end": 211,
+      "debt_end": 0
+    },
+    "time_only": {
+      "normal_max_jump": 0.033334000000000086,
+      "boundary_jump": 2.033334,
+      "all_max_jump": 2.033334,
+      "resume_spawned": 1,
+      "max_frame_spawned": 1,
+      "born_end": 151,
+      "debt_end": 0
+    },
+    "emit_only": {
+      "normal_max_jump": 0.033334000000000086,
+      "boundary_jump": 0.033333999999999975,
+      "all_max_jump": 0.03333400000000042,
+      "resume_spawned": 61,
+      "max_frame_spawned": 61,
+      "born_end": 211,
+      "debt_end": 0
+    },
+    "fixed": {
+      "normal_max_jump": 0.033334000000000086,
+      "boundary_jump": 0.033333999999999975,
+      "all_max_jump": 0.03333400000000042,
+      "resume_spawned": 2,
+      "max_frame_spawned": 2,
+      "born_end": 211,
+      "debt_end": 0
+    },
+    "scheduled": {
+      "normal_max_jump": 0.033334000000000086,
+      "boundary_jump": 0.03333300000000028,
+      "all_max_jump": 0.03333400000000042,
+      "resume_spawned": 1,
+      "max_frame_spawned": 1,
+      "born_end": 211,
+      "debt_end": 0
+    }
+  },
+  "ablation": {
+    "J0": 0.033334000000000086,
+    "excess_total": 2.0,
+    "time_part": 2.0,
+    "emit_part_same_id": 0.0,
+    "interaction": 0.0,
+    "time_share_pct": 100.0,
+    "emit_share_pct": 0.0
+  },
+  "centroid_split": {
+    "N_old": 42,
+    "K_resume": 61,
+    "K_debt": 60,
+    "part_normal": [
+      0.01788482668881508,
+      0.0
+    ],
+    "part_time": [
+      1.9534883720930234,
+      0.0
+    ],
+    "part_emit": [
+      -1.515917855046286,
+      0.0
+    ],
+    "predicted_total": [
+      0.4554553437355525,
+      0.0
+    ],
+    "measured_total": [
+      0.45545541169671744,
+      0.0
+    ],
+    "gross_pause_budget": 3.4694062271393094
+  },
+  "emission_deficit": {
+    "n": 60,
+    "max": 1.999999,
+    "mean": 1.0166666333333334
+  },
+  "checks": {
+    "csv_baseline_teleport_gt_1u": true,
+    "csv_decomp_additive": true,
+    "csv_time_owns_position_jump": true,
+    "csv_emit_sameid_jump_zero": true,
+    "csv_fixed_boundary_le_normal": true,
+    "csv_fixed_allmax_le_normal": true,
+    "csv_fixed_every_particle_step_le_normal": true,
+    "csv_buggy_every_particle_step_was_huge": true,
+    "csv_fixed_resume_spawn_is_2": true,
+    "csv_no_frame_flood_over_2": true,
+    "csv_buggy_did_flood_61": true,
+    "csv_emission_count_conserved": true,
+    "csv_debt_repaid": true,
+    "csv_centroid_split_matches_recording": true,
+    "csv_emit_deficit_max_about_G": true
+  },
+  "py_all_ok": true
+}

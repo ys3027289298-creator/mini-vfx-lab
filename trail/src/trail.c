@@ -67,6 +67,18 @@ int main(void) {
     check("bad_age", tr_age(&o, 1.0f, 0.0f) == -1);
     check("bad_index", tr_width(&o, -1, 1.0f, 1.0f) < 0.0f);
 
+    /* pause/resume timestamp policy: feeding the raw resume gap (~1.0167s
+     * = one frame + 1s paused) ages every point past max_age and the ribbon
+     * vanishes; a rebased one-frame dt keeps the trail continuous. Paused
+     * ticks simply do not call tr_age. */
+    Trail gap; memset(&gap, 0, sizeof(gap));
+    for (int i = 0; i < 5; i++) tr_push(&gap, (float)i, 0);
+    check("raw_gap_expires_trail", tr_age(&gap, 61.0f / 60.0f, 1.0f) == 0);
+
+    Trail rebased; memset(&rebased, 0, sizeof(rebased));
+    for (int i = 0; i < 5; i++) tr_push(&rebased, (float)i, 0);
+    check("rebased_frame_keeps_trail", tr_age(&rebased, 1.0f / 60.0f, 1.0f) == 5);
+
     printf("all_ok=%d\n", failures == 0);
     return failures == 0 ? 0 : 1;
 }
