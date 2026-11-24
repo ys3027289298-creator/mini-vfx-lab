@@ -1,0 +1,9 @@
+# built module binaries
+emitter/emitter
+field/field
+trail/trail
+collision/collision
+
+# python
+__pycache__/
+*.pyc
