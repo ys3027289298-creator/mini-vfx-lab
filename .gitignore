@@ -1,0 +1,8 @@
+# build artifacts
+emitter/emitter
+field/field
+trail/trail
+visibility/visibility
+
+# generated sweep data (regenerate with `make csv`)
+visibility/sweep.csv
