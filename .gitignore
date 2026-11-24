@@ -1,0 +1,8 @@
+# 本地构建产物
+explosion/explosion
+emitter/emitter
+field/field
+trail/trail
+
+# Python 虚拟环境
+.venv/
