@@ -1,0 +1,6 @@
+# build outputs (each module produces a binary named after its directory)
+emitter/emitter
+field/field
+trail/trail
+splash/splash
+*.o
