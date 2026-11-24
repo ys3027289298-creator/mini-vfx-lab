@@ -9,5 +9,8 @@ emitter: src/emitter.c
 test: emitter
 	./emitter
 
+lab:
+	python3 tools/degrade_lab.py
+
 clean:
 	rm -f emitter
