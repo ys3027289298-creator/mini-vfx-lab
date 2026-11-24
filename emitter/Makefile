@@ -9,5 +9,13 @@ emitter: src/emitter.c
 test: emitter
 	./emitter
 
+lab: emitter
+	./emitter --lab
+
+curves: emitter
+	./emitter --curves
+
 clean:
 	rm -f emitter
+
+.PHONY: all test lab curves clean
