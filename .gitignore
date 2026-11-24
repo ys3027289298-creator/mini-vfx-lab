@@ -1,0 +1,9 @@
+# build outputs
+emitter/emitter
+emitter/bench
+emitter/audit_query
+field/field
+trail/trail
+
+# generated measurement data
+artifacts/precision_curves.csv
