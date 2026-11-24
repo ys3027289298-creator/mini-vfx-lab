@@ -1,0 +1,22 @@
+{
+  "_note": "当前生效的力场参数。诊断结论：重力项占速度增量预算 65%（大头），故只把 gravity_y 从 -16.0 调为 +1.4——对烟雾而言净竖直体力应为轻微上浮（浮力大于重力的等效净场）。drag/swirl 保持不动。",
+  "forces": {
+    "gravity_x": 0.0,
+    "gravity_y": 1.4,
+    "drag": 0.5,
+    "swirl": 0.45
+  },
+  "record": {
+    "duration_s": 10.0,
+    "fps": 60,
+    "seed": 20261125
+  },
+  "emitter": {
+    "rate_per_s": 14.0,
+    "life_s": 4.0,
+    "spawn_radius": 0.18,
+    "spawn_vx_sigma": 0.30,
+    "spawn_vy0": 1.7,
+    "spawn_vy_jitter": 0.70
+  }
+}

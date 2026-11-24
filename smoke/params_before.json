@@ -1,0 +1,22 @@
+{
+  "_note": "基线现场：三个力场参数据说是别人随手填的。重力场在本场景只取竖直方向 gx=0，gy 为竖直重力加速度（+y 朝上）。",
+  "forces": {
+    "gravity_x": 0.0,
+    "gravity_y": -16.0,
+    "drag": 0.5,
+    "swirl": 0.45
+  },
+  "record": {
+    "duration_s": 10.0,
+    "fps": 60,
+    "seed": 20261125
+  },
+  "emitter": {
+    "rate_per_s": 14.0,
+    "life_s": 4.0,
+    "spawn_radius": 0.18,
+    "spawn_vx_sigma": 0.30,
+    "spawn_vy0": 1.7,
+    "spawn_vy_jitter": 0.70
+  }
+}
